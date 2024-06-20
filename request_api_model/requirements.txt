@@ -1,0 +1,6 @@
+transformers
+google-cloud-aiplatform
+protobuf
+google-auth
+numpy
+tensorflow

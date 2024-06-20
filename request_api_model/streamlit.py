@@ -1,23 +1,30 @@
-from fastapi import FastAPI
-import uvicorn
+import streamlit as st
 from transformers import AutoTokenizer
 import json
 import os
 from typing import Dict, List, Union
-
 from google.cloud import aiplatform
 from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value
 import numpy as np
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+service_account_info = st.secr`ets["gcp_service_account"]
 
-app = FastAPI()
+# # Save the service account info to a file
+with open("service_account.json", "w") as f:
+    json.dump(service_account_info, f)
+
+# # Set the environment variable to point to the service account file
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'service_account.json'
+
 tokenizer = AutoTokenizer.from_pretrained("saved_tokenizer")
 
-def tokenize_texts(texts, tokenizer, max_len=256):
+def tokenize_texts(texts, tokenizer, max_len=128):
     return tokenizer(
         texts,
         max_length=max_len,
@@ -25,13 +32,13 @@ def tokenize_texts(texts, tokenizer, max_len=256):
         padding='max_length',
         return_tensors='tf'
     )
+
 def save_tokens_to_json(tokens, file_path):
     with open(file_path, 'w') as f:
         json.dump(tokens, f)
 
 ENDPOINT_ID="8785986311325483008"
 PROJECT_ID="223463197253"
-
 
 def predict_custom_trained_model_sample(
     project: str,
@@ -40,11 +47,6 @@ def predict_custom_trained_model_sample(
     location: str = "asia-southeast2",
     api_endpoint: str = "asia-southeast2-aiplatform.googleapis.com",
 ):
-    """
-    `instances` can be either single instance of type dict or a list
-    of instances.
-    """
-    # The AI Platform services require regional API endpoints.
     client_options = {"api_endpoint": api_endpoint}
 
     client = aiplatform.gapic.PredictionServiceClient(client_options=client_options)
@@ -57,14 +59,10 @@ def predict_custom_trained_model_sample(
     response = client.predict(
         endpoint=endpoint, instances=instances, parameters=parameters
     )
-    print("response")
-    print(" deployed_model_id:", response.deployed_model_id)
-    # The predictions are a google.protobuf.Value representation of the model's predictions.
     predictions = response.predictions
     return predictions
 
-
-def get_embeddings(texts, tokenizer, max_len= 256):
+def get_embeddings(texts, tokenizer, max_len= 128):
     tokens = tokenize_texts(texts, tokenizer, max_len)
     tokens = {key: value.numpy().tolist() for key, value in tokens.items()}
     instances = [{"input_ids": input_id, "attention_mask": attention_mask}
@@ -83,28 +81,23 @@ def get_embeddings(texts, tokenizer, max_len= 256):
 
     return result[0]
 
+st.title("Major Recommendation System")
+input_text = st.text_area("Enter a description of your interests and career aspirations:")
 
-@app.get("/")
-async def root():
-
-    input_text = "Menyukai bidang berkomunikasi dengan orang lain, lalu selain itu juga ingin berkolaborasi dengan orang lain dalam menyelesaikan masalah."
-    input_embedding = get_embeddings([input_text], tokenizer,)
-    print(input_embedding)
+if st.button("Get Recommendations"):
+    input_embedding = get_embeddings([input_text], tokenizer)
     embedding_array = np.array(input_embedding)
 
-    # Get the indices of the top 5 highest values
     top_5_unique = np.argsort(embedding_array)[-5:][::-1]
 
     columns_to_consider = ['Matematika', 'Sains', 'Fisika', 'Sosiologi', 'Biologi', 'Kimia',
-                            'Teknologi','Bisnis dan Ekonomi', 'Seni', 'Sastra dan Linguistik',
-                        'Pendidikan', 'Hukum', 'Lingkungan', 'Kesehatan', 'Geografi',
-                        'Komunikasi', 'Sejarah dan Filsafat']
+                           'Teknologi', 'Bisnis dan Ekonomi', 'Seni', 'Sastra dan Linguistik',
+                           'Pendidikan', 'Hukum', 'Lingkungan', 'Kesehatan', 'Geografi',
+                           'Komunikasi', 'Sejarah dan Filsafat']
 
     num_to_major = {i+1: columns_to_consider[i] for i in range(len(columns_to_consider))}
 
-    # Map the top 5 unique numbers to their corresponding names
     top_5_majors_names = [num_to_major[num+1] for num in top_5_unique]
-    return {"top_5_majors": top_5_majors_names}
-
-
-uvicorn.run(app, host="127.0.0.1", port=8080)
+    st.write("Top 5 recommended majors for you:")
+    for i, major in enumerate(top_5_majors_names, 1):
+        st.write(f"{i}. {major}")

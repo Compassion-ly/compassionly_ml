@@ -45,7 +45,7 @@ Focusing on the machine learning aspects of our project Compassion.ly, which is 
 
 
 ## Dataset
-For the dataset, access in this link: [dataset_compassionly](https://github.com/Compassion-ly/compassionly_ml/tree/master/dataset)
+For the dataset, access on this link: [dataset_compassionly](https://github.com/Compassion-ly/compassionly_ml/tree/master/dataset)
 
 ## Model demo
 The demo for our model, you can access in this link: [Model demo](https://majorquickrecommendation.streamlit.app/)
@@ -53,15 +53,12 @@ The demo for our model, you can access in this link: [Model demo](https://majorq
 ## Deployed Model
 For our deployed model, you can access it in this link:
 - [Summarization Model](https://drive.google.com/file/d/1xsreSypuxkzYCB4EKzYY5rX2swVdiykl/view?usp=sharing)
-- [Quick Recomendation Model](https://drive.google.com/drive/folders/18JrxndMV3qvIPKJa-58zlOPI--uZXi_y?usp=sharing)
+- [Quick Recommendation Model](https://drive.google.com/drive/folders/18JrxndMV3qvIPKJa-58zlOPI--uZXi_y?usp=sharing)
 - [Numerical Model as an Input](https://drive.google.com/drive/folders/1htdPx9R5R7BTokYok9Xcc1x9Oy18oG6_?usp=sharing)
 
 ## Model evaluation 
 This is our model accuracy and loss
 ![image](https://github.com/Compassion-ly/compassionly_ml/assets/100945245/7184a4f5-ed7c-4f5b-8864-0e6d429f9055)
-
-
-## Summary 
 
 
 ## Reference : 
